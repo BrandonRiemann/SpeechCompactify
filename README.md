@@ -9,6 +9,6 @@ python compactify.py [audio filename] [threshold value (optional)]
 `
 
 ## Plots
-Some useful plots are generated upon running compactify.py on an audio file. For the sample .wav file included, here is the result of silence detection:
+Some useful plots are generated upon running compactify.py on an audio file. For the sample .wav file included, here is the result of silence detection, where green areas indicate segments in the audio above the given threshold:
 
 ![](b1_segments.png)
