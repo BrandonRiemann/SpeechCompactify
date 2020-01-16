@@ -32,12 +32,8 @@ if len(sys.argv) not in [2, 3]:
 if not os.path.isfile(sys.argv[1]):
     raise Exception("Cannot find file")
 
-import scipy.io.wavfile as wavfile
-from scipy.signal import lfilter
 from scipy.signal import filtfilt
 from scipy.signal import bilinear
-from scipy.signal import butter
-from scipy.signal import decimate
 from scipy.signal import hilbert
 import numpy as np
 from numpy import pi, polymul
