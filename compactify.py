@@ -104,7 +104,7 @@ plt.savefig("{0:s}_processed.png".format(sys.argv[1][0:-4]))
 plt.close()
 
 window_length = 100
-# TODO: Need a way to detect a good value for threshold (will depend on the audio file)
+# TODO: Need a way to detect a good value for threshold (will depend on the audio and sample width)
 threshold = int(sys.argv[2]) if len(sys.argv) == 3 else 10000000
 segments = []
 
@@ -123,11 +123,15 @@ ax.plot(np.linspace(0, len(x)/fs, len(x)), x)
 
 start_seg = segments[0]
 is_start_seg = True
+
+# Plot regions of audio above threshold (There is certainly a more elegant way to do this.)
 for i in range(0, len(segments)):
     if (i < len(segments)-1):
+        # marks the end of a segment
         if is_start_seg and (segments[i+1]/fs-segments[i]/fs) > 0.13:
             plt.axvspan(start_seg/fs, segments[i]/fs, facecolor='g', alpha=0.5)
             is_start_seg = False
+        # marks the start of a segment
         elif not is_start_seg and (segments[i+1]/fs-segments[i]/fs) <= 0.1:
             start_seg = segments[i]
             is_start_seg = True
@@ -135,6 +139,7 @@ for i in range(0, len(segments)):
         if is_start_seg:
             plt.axvspan(start_seg/fs, segments[i]/fs, facecolor='g', alpha=0.5)
             is_start_seg = False
+
 plt.title("Detected silence")
 # Uncomment below to show the plot
 #plt.show()
