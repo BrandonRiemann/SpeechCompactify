@@ -40,6 +40,9 @@ from numpy import pi, polymul
 from pydub import AudioSegment
 import matplotlib.pyplot as plt
 
+# Progress bar
+from tqdm import tqdm
+
 def A_weight(fs):
     """
     Coefficients and formula based on: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4331191/
@@ -59,9 +62,6 @@ def plot_signal(signal, fs):
 # Load the audio file
 audio = AudioSegment.from_file(sys.argv[1])
 
-# Uncomment below if you wish to also speed up the playback or see pydub docs for more effects
-#audio = AudioSegment.speedup(audio, playback_speed=2)
-
 # Get the sample rate and numpy array of the sound data
 fs = audio.frame_rate
 types = [np.uint8, np.int16, np.int32, np.int32]
@@ -72,6 +72,17 @@ for ch in list(range(audio.channels)):
 x = np.array(temp).T
 x = x.flatten()
 
+# Parameters
+window_length = 100
+# TODO: Need a way to detect a good value for threshold (will depend on the audio and sample width)
+threshold = int(sys.argv[2]) if len(sys.argv) == 3 else 10000000
+
+pbar_step = np.floor(len(x) / 20)
+pbar_total = len(x) + 4*pbar_step
+
+# Progress bar
+pbar = tqdm(total = pbar_total)
+
 # Plot 1 - unmodified original audio
 plt.subplot(3, 1, 1)
 plot_signal(x, fs)
@@ -80,6 +91,8 @@ plt.title("Original audio")
 # Apply A-weighting first
 b, a = A_weight(fs)
 y = filtfilt(b, a, x)
+
+pbar.update(pbar_step)
 
 # Plot 2 - A-weighting applied to samples
 plt.subplot(3, 1, 2)
@@ -90,6 +103,8 @@ plt.title("A-weighted")
 analytic_signal = hilbert(y)
 y_env = np.abs(analytic_signal)
 
+pbar.update(pbar_step)
+
 # Plot 3 - envelope
 plt.subplot(3, 1, 3)
 plot_signal(y_env, fs)
@@ -99,9 +114,6 @@ plt.title("Envelope")
 plt.savefig("{0:s}_processed.png".format(sys.argv[1][0:-4]))
 plt.close()
 
-window_length = 100
-# TODO: Need a way to detect a good value for threshold (will depend on the audio and sample width)
-threshold = int(sys.argv[2]) if len(sys.argv) == 3 else 10000000
 segments = []
 
 # Get non-silent segments
@@ -111,6 +123,10 @@ for i in range(0, len(y_env), window_length):
     mean = Y.mean()*(1 + int((i-window_length) in segments)*0.5)
     if mean > threshold:
         segments.append(i)
+
+    pbar.update(window_length * int(i > 0))
+
+pbar.update(len(y_env) - window_length * np.floor(len(y_env)/window_length))
 
 # Plot for showing regions detected that have audio above threshold value
 fig, ax = plt.subplots()
@@ -136,6 +152,8 @@ for i in range(0, len(segments)):
             plt.axvspan(start_seg/fs, segments[i]/fs, facecolor='g', alpha=0.5)
             is_start_seg = False
 
+pbar.update(pbar_step)
+
 plt.title("Detected silence")
 # Uncomment below to show the plot
 #plt.show()
@@ -155,4 +173,10 @@ plt.title("Truncated audio")
 plt.savefig("{0:s}_trunc.png".format(sys.argv[1][0:-4]))
 
 audio._data = out
+# Uncomment below if you wish to also speed up the playback or see pydub docs for more effects
+#audio = AudioSegment.speedup(audio, playback_speed=2)
+
 audio.export(strOut, format='wav')
+
+pbar.update(pbar_total - pbar.n)
+pbar.close()
