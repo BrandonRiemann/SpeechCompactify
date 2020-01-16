@@ -62,15 +62,14 @@ def plot_signal(signal, fs):
 
 # Load the audio file
 audio = AudioSegment.from_file(sys.argv[1])
-audio = audio.set_channels(1)
-audio = audio.set_sample_width(4)
 
 # Uncomment below if you wish to also speed up the playback or see pydub docs for more effects
 #audio = AudioSegment.speedup(audio, playback_speed=2)
 
 # Get the sample rate and numpy array of the sound data
 fs = audio.frame_rate
-data = np.fromstring(audio._data, np.int32)
+types = [np.uint8, np.int16, np.int32, np.int32]
+data = np.fromstring(audio._data, types[audio.sample_width - 1])
 temp = []
 for ch in list(range(audio.channels)):
     temp.append(data[ch::audio.channels])
@@ -95,7 +94,7 @@ plt.title("A-weighted")
 analytic_signal = hilbert(y)
 y_env = np.abs(analytic_signal)
 
-# Plot 3 -
+# Plot 3 - envelope
 plt.subplot(3, 1, 3)
 plot_signal(y_env, fs)
 plt.title("Envelope")
@@ -126,14 +125,14 @@ start_seg = segments[0]
 is_start_seg = True
 for i in range(0, len(segments)):
     if (i < len(segments)-1):
-        if is_start_seg == True and (segments[i+1]/fs-segments[i]/fs) > 0.13:
+        if is_start_seg and (segments[i+1]/fs-segments[i]/fs) > 0.13:
             plt.axvspan(start_seg/fs, segments[i]/fs, facecolor='g', alpha=0.5)
             is_start_seg = False
         elif not is_start_seg and (segments[i+1]/fs-segments[i]/fs) <= 0.1:
             start_seg = segments[i]
             is_start_seg = True
     else:
-        if is_start_seg == True:
+        if is_start_seg:
             plt.axvspan(start_seg/fs, segments[i]/fs, facecolor='g', alpha=0.5)
             is_start_seg = False
 plt.title("Detected silence")
@@ -144,7 +143,7 @@ plt.close()
 
 # Splice data and write out wav file
 strOut = "{0:s}_cut.wav".format(sys.argv[1][0:-4])
-out = np.array([], dtype=np.int32)
+out = np.array([], dtype=types[audio.sample_width - 1])
 
 for i in segments:
     out = np.append(out, x[i:i+window_length])
@@ -154,4 +153,5 @@ plot_signal(out, fs)
 plt.title("Truncated audio")
 plt.savefig("{0:s}_trunc.png".format(sys.argv[1][0:-4]))
 
-wavfile.write(strOut, fs, out)
+audio._data = out
+audio.export(strOut, format='wav')
