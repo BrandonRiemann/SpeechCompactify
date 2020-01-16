@@ -1,7 +1,7 @@
 # SpeechCompactify
 
 ## What is it?
-SpeechCompactify works by detecting and truncating silence in an audio file and writes the truncated version to a new file. In its early stages, it is really just a convenient tool or handy snippet that can be adapted for other uses. It uses pydub for convenience in loading the audio (which also supports effects such as speeding up the audio).
+SpeechCompactify works by detecting and truncating silence in an audio file and writes the truncated version to a new file. In its early stages, it is really just a convenient tool or handy snippet that can be adapted for other uses. It uses pydub for convenience in loading the audio (which also supports effects such as speeding up the audio &mdash; hence, one can really "compactify" an audio source).
 
 ## Usage
 `
