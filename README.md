@@ -1,7 +1,7 @@
 # SpeechCompactify
 
 ## What is it?
-SpeechCompactify is intended for audio files containing spoken words and works by detecting and truncating silence. In its early stages, it is really just a convenient tool or handy snippet that can be adapted for other uses. It uses pydub for convenience in loading the audio.
+SpeechCompactify is intended for audio files containing spoken words and works by detecting and truncating silence. In its early stages, it is really just a convenient tool or handy snippet that can be adapted for other uses. It uses pydub for convenience in loading the audio (which also supports effects such as speeding up the audio).
 
 ## Usage
 `
